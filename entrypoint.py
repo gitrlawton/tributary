@@ -16,13 +16,9 @@ DATA_KEY = "engine_temperature"
 # it using the app variable.
 app = Flask(__name__)
 
-@app.route('/')
-def home():
-        return  {"message" : "Hello World"}, 200
-
 # Define an endpoint which accepts POST requests and is
 # reachable from the /record endpoint.
-@app.route('/record', methods=['GET', 'POST'])
+@app.route('/record', methods=['POST'])
 def record_engine_temperature():
         # Extract the JSON payload from the request.
         payload = request.get_json(force=True)
@@ -35,9 +31,8 @@ def record_engine_temperature():
         # Open up a connection to the Redis database, which
         # is running in a different container.
         database = redis.Redis(host="redis", port=6379, db=0, decode_responses=True)
-        # Push the current engine temperature reading to the
+        # Push the current engine temperature reading to a
         # Redis list.
-        # ("engine_temperature")
         database.lpush(DATA_KEY, engine_temperature)
         logger.info(f"stashed engine temperature in redis: {engine_temperature}")
 
@@ -52,3 +47,19 @@ def record_engine_temperature():
         logger.info(f"record request successful")
         # return a json payload, and a 200 status code to the client
         return {"success": True}, 200
+
+@app.route('/collect', methods=['GET'])
+def collect_engine_temperature():
+        database = redis.Redis(host="redis", port=6379, db=0, decode_responses=True)
+        # Retrieve the most recent reading from the database.
+        current_engine_temperature = database.lindex(DATA_KEY, 0)
+
+        sum = 0
+        for reading in database.lrange(DATA_KEY, 0, -1):
+                sum += float(reading)
+
+        average_engine_temperature = sum / database.llen(DATA_KEY)
+
+
+
+        return {"current engine temperature": current_engine_temperature, "average engine temperature" : average_engine_temperature}, 200
