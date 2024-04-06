@@ -1,0 +1,40 @@
+# YAML is a language often used for configuration files.
+
+
+version: "3.8"
+
+# This services definition contains the tributary and
+# redis services.  Containers are articulated as services
+# in Docker Compose.  A service instantiates one or more
+# replica containers of a single image.
+services:
+  tributary:
+    # The build tag indicates that the tributary image
+    # should be built locally using a Dockerfile at the
+    # specified path.
+    build: .
+    ports:
+      - "8000:8000"
+  # The redis service has an image tag instead of a build
+  # tag.  Docker will search its local image cache for a
+  # matching name before pulling the image from Dockerhub.
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+# The ports definition specifies that the Docker engine
+# should bind the host port on the left, to the container
+# port on the right.  Doing so establishes a communication
+# channel that the two can use to talk back and forth.
+# This is necessary because when a container is created,
+# it is completely cut off from the outside world.  To
+# enable network traffic to and from a container, you
+# must define which ports you'd like exposed to your host
+# machine.
+# Our Flask server will listen for incoming POST requests
+# on port 8000, so we bind that to port 8000 on the host
+# machine.  Any network traffic directed to port 8000
+# on the host machine is transparently forwarded to port
+# 8000 on the container, where our Flask server can
+# interact with it.
