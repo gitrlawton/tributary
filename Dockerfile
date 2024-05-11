@@ -24,6 +24,7 @@ RUN pip install -r requirements.txt
 # to access a file on your host machine from the container,
 # you must explicitly copy it over.
 COPY ./entrypoint.py .
+
 # This line starts up our Flask application using
 # Gunicorn, which basically acts as the glue between your
 # python code and the container's underlying networking
